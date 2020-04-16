@@ -28,6 +28,7 @@ import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.support.descriptor.EngineDescriptor;
+import org.opentest4j.AssertionFailedError;
 
 class EventsTests {
 
@@ -116,7 +117,7 @@ class EventsTests {
 	}
 
 	@Test
-	@DisplayName("assertEventsMatchLoosely: only one bad event -> fails")
+	@DisplayName("assertEventsMatchLoosely: only bad events -> fails")
 	void assertEventsMatchLooselyWithBadConditionsOnlyFails() {
 		Executable willFail = () -> events.assertEventsMatchLoosely( //
 			event(engine(), finishedWithFailure()), //
@@ -147,9 +148,9 @@ class EventsTests {
 	}
 
 	@Test
-	@DisplayName("assertEventsMatchIncompleteButOrdered: all events in order -> match")
-	void assertEventsMatchIncompleteButOrderedMatchesAllEventsInOrder() {
-		events.assertEventsMatchIncompleteButOrdered( //
+	@DisplayName("assertEventsMatchLooselyInOrder: all events in order -> match")
+	void assertEventsMatchLooselyInOrderMatchesAllEventsInOrder() {
+		events.assertEventsMatchLooselyInOrder( //
 			event(engine(), started()), //
 			event(engine(), skippedWithReason("reason1")), //
 			event(engine(), skippedWithReason("reason2")), //
@@ -158,73 +159,69 @@ class EventsTests {
 	}
 
 	@Test
-	@DisplayName("assertEventsMatchIncompleteButOrdered: all events in wrong order -> fail")
-	void assertEventsMatchIncompleteButOrderedWithAllEventsInWrongOrderFails() {
-		Executable willFail = () -> events.assertEventsMatchIncompleteButOrdered( //
+	@DisplayName("assertEventsMatchLooselyInOrder: all events in wrong order -> fail")
+	void assertEventsMatchLooselyInOrderWithAllEventsInWrongOrderFails() {
+		Executable willFail = () -> events.assertEventsMatchLooselyInOrder( //
 			event(engine(), skippedWithReason("reason2")), //
 			event(engine(), finishedSuccessfully()), //
 			event(engine(), skippedWithReason("reason1")), //
 			event(engine(), started()) //
 		);
 
-		AssertJMultipleFailuresError error = assertThrows(AssertJMultipleFailuresError.class, willFail);
-		List<Throwable> failures = error.getFailures();
-		assertEquals(1, failures.size());
-		assertTrue(failures.get(0).getMessage().contains("Conditions are not in the correct order."));
+		AssertionFailedError error = assertThrows(AssertionFailedError.class, willFail);
+		assertTrue(error.getMessage().contains("Conditions are not in the correct order."));
 	}
 
 	@Test
-	@DisplayName("assertEventsMatchIncompleteButOrdered: tailing subset in order -> match")
-	void assertEventsMatchIncompleteButOrderedMatchesATailingSubset() {
-		events.assertEventsMatchIncompleteButOrdered( //
+	@DisplayName("assertEventsMatchLooselyInOrder: tailing subset in order -> match")
+	void assertEventsMatchLooselyInOrderMatchesATailingSubset() {
+		events.assertEventsMatchLooselyInOrder( //
 			event(engine(), skippedWithReason("reason1")), //
 			event(engine(), finishedSuccessfully()) //
 		);
 	}
 
 	@Test
-	@DisplayName("assertEventsMatchIncompleteButOrdered: starting subset in order -> match")
-	void assertEventsMatchIncompleteButOrderedMatchesAStartingSubset() {
-		events.assertEventsMatchIncompleteButOrdered( //
+	@DisplayName("assertEventsMatchLooselyInOrder: starting subset in order -> match")
+	void assertEventsMatchLooselyInOrderMatchesAStartingSubset() {
+		events.assertEventsMatchLooselyInOrder( //
 			event(engine(), started()), //
 			event(engine(), skippedWithReason("reason1")) //
 		);
 	}
 
 	@Test
-	@DisplayName("assertEventsMatchIncompleteButOrdered: subset in wrong order -> fail")
-	void assertEventsMatchIncompleteButOrderedWithASubsetInWrongOrderFails() {
-		Executable willFail = () -> events.assertEventsMatchIncompleteButOrdered( //
+	@DisplayName("assertEventsMatchLooselyInOrder: subset in wrong order -> fail")
+	void assertEventsMatchLooselyInOrderWithASubsetInWrongOrderFails() {
+		Executable willFail = () -> events.assertEventsMatchLooselyInOrder( //
 			event(engine(), skippedWithReason("reason1")), //
 			event(engine(), started()) //
 		);
 
-		AssertJMultipleFailuresError error = assertThrows(AssertJMultipleFailuresError.class, willFail);
-		List<Throwable> failures = error.getFailures();
-		assertEquals(1, failures.size());
-		assertTrue(failures.get(0).getMessage().contains("Conditions are not in the correct order."));
+		AssertionFailedError error = assertThrows(AssertionFailedError.class, willFail);
+		assertTrue(error.getMessage().contains("Conditions are not in the correct order."));
 	}
 
 	@Test
-	@DisplayName("assertEventsMatchIncompleteButOrdered: last event alone -> match")
-	void assertEventsMatchIncompleteButOrderedMatchesTheLastEventAlone() {
-		events.assertEventsMatchIncompleteButOrdered( //
+	@DisplayName("assertEventsMatchLooselyInOrder: last event alone -> match")
+	void assertEventsMatchLooselyInOrderMatchesTheLastEventAlone() {
+		events.assertEventsMatchLooselyInOrder( //
 			event(engine(), finishedSuccessfully()) //
 		);
 	}
 
 	@Test
-	@DisplayName("assertEventsMatchIncompleteButOrdered: first event alone -> match")
-	void assertEventsMatchIncompleteButOrderedMatchesTheFirstEventAlone() {
-		events.assertEventsMatchIncompleteButOrdered( //
+	@DisplayName("assertEventsMatchLooselyInOrder: first event alone -> match")
+	void assertEventsMatchLooselyInOrderMatchesTheFirstEventAlone() {
+		events.assertEventsMatchLooselyInOrder( //
 			event(engine(), started()) //
 		);
 	}
 
 	@Test
-	@DisplayName("assertEventsMatchIncompleteButOrdered: bad events only -> fail")
-	void assertEventsMatchIncompleteButOrderedWithBadConditionsOnlyFails() {
-		Executable willFail = () -> events.assertEventsMatchIncompleteButOrdered( //
+	@DisplayName("assertEventsMatchLooselyInOrder: bad events only -> fail")
+	void assertEventsMatchLooselyInOrderWithBadConditionsOnlyFails() {
+		Executable willFail = () -> events.assertEventsMatchLooselyInOrder( //
 			event(engine(), finishedWithFailure()), //
 			event(engine(), skippedWithReason("other")) //
 		);
@@ -238,9 +235,9 @@ class EventsTests {
 	}
 
 	@Test
-	@DisplayName("assertEventsMatchIncompleteButOrdered: one matching event and one bad event -> fail")
-	void assertEventsMatchIncompleteButOrderedWithOneMatchingAndOneBadConditionFailsPartly() {
-		Executable willFail = () -> events.assertEventsMatchIncompleteButOrdered( //
+	@DisplayName("assertEventsMatchLooselyInOrder: one matching event and one bad event -> fail")
+	void assertEventsMatchLooselyInOrderWithOneMatchingAndOneBadConditionFailsPartly() {
+		Executable willFail = () -> events.assertEventsMatchLooselyInOrder( //
 			event(engine(), started()), //
 			event(engine(), finishedWithFailure()) //
 		);
@@ -250,32 +247,30 @@ class EventsTests {
 	}
 
 	@Test
-	@DisplayName("assertEventsMatchIncompleteButOrdered: first and last event in order -> match")
-	void assertEventsMatchIncompleteButOrderedMatchesFirstAndLastEventInOrder() {
-		events.assertEventsMatchIncompleteButOrdered( //
+	@DisplayName("assertEventsMatchLooselyInOrder: first and last event in order -> match")
+	void assertEventsMatchLooselyInOrderMatchesFirstAndLastEventInOrder() {
+		events.assertEventsMatchLooselyInOrder( //
 			event(engine(), started()), //
 			event(engine(), finishedSuccessfully()) //
 		);
 	}
 
 	@Test
-	@DisplayName("assertEventsMatchIncompleteButOrdered: second and last event in bad order -> fail")
-	void assertEventsMatchIncompleteButOrderedWithSecondAndLastEventInBadOrderFails() {
-		Executable willFail = () -> events.assertEventsMatchIncompleteButOrdered( //
+	@DisplayName("assertEventsMatchLooselyInOrder: second and last event in bad order -> fail")
+	void assertEventsMatchLooselyInOrderWithSecondAndLastEventInBadOrderFails() {
+		Executable willFail = () -> events.assertEventsMatchLooselyInOrder( //
 			event(engine(), finishedSuccessfully()), //
 			event(engine(), skippedWithReason("reason1")) //
 		);
 
-		AssertJMultipleFailuresError error = assertThrows(AssertJMultipleFailuresError.class, willFail);
-		List<Throwable> failures = error.getFailures();
-		assertEquals(1, failures.size());
-		assertTrue(failures.get(0).getMessage().contains("Conditions are not in the correct order."));
+		AssertionFailedError error = assertThrows(AssertionFailedError.class, willFail);
+		assertTrue(error.getMessage().contains("Conditions are not in the correct order."));
 	}
 
 	@Test
-	@DisplayName("assertEventsMatchIncompleteButOrdered: too many events -> fail")
-	void assertEventsMatchIncompleteButOrderedWithTooEventsFails() {
-		Executable willFail = () -> events.assertEventsMatchIncompleteButOrdered( //
+	@DisplayName("assertEventsMatchLooselyInOrder: too many events -> fail")
+	void assertEventsMatchLooselyInOrderWithTooManyEventsFails() {
+		Executable willFail = () -> events.assertEventsMatchLooselyInOrder( //
 			event(engine(), finishedSuccessfully()), //
 			event(engine(), finishedSuccessfully()), //
 			event(engine(), finishedSuccessfully()), //
